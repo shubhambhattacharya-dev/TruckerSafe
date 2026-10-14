@@ -6,6 +6,8 @@ Weather-aware truck-route planning system built with **React (TypeScript + Leafl
 
 > **Prime Directive**: *The ALGORITHM decides, AI only explains. Every number on screen is reproducible by a unit test.*
 
+![TruckerSafe Dashboard](docs/screenshots/dashboard.png)
+
 ---
 
 ## Architecture Diagram
@@ -161,7 +163,7 @@ venv\Scripts\python scripts\seed_demo_scenario.py
 Run all test suites locally:
 
 ```powershell
-# Backend: Django checks + 492 pytest cases (service layer, risk matrix, contracts)
+# Backend: Django checks + 491 pytest cases (service layer, risk matrix, contracts)
 cd backend
 venv\Scripts\python manage.py check
 venv\Scripts\pytest -q
@@ -175,6 +177,18 @@ npm run build
 npx playwright install chromium
 npm run test:e2e
 ```
+
+---
+
+## Loom Walkthrough Video
+
+- **Video Recording**: [Watch the 5–10 min Loom Walkthrough](https://www.loom.com/share/your-recording-id)
+- **Walkthrough Agenda (§7.1)**:
+  1. `0:00–1:00` — Problem statement & rules table (wind, rain, snow thresholds + load rules)
+  2. `1:00–3:00` — Live demo: entering trip details and watching the unified dashboard render
+  3. `3:00–5:00` — Demo scenario: showing Route 2 disqualified by load rules, weather layer toggling (Wind, Rain, Snow), and the 48-hour timeline slider
+  4. `5:00–7:00` — Code tour: pure `RiskEngine` decision table, `LexicographicRanker`, and `Adapter` pattern
+  5. `7:00–10:00` — Automated tests (all 491 backend tests + vitest + playwright green) and the two key design decisions: worst-of-three condition combination and conservative segment risk
 
 ---
 
