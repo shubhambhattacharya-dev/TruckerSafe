@@ -81,7 +81,9 @@ def test_requests_alternatives_and_full_geometry(mock_get, adapter):
 
     _, kwargs = mock_get.call_args
 
-    assert kwargs["params"]["alternatives"] == 3
+    # OSRM counts EXTRA routes beyond the primary; the adapter's public
+    # contract counts TOTAL routes, so 3 total routes -> alternatives=2.
+    assert kwargs["params"]["alternatives"] == 2
     assert kwargs["params"]["overview"] == "full"
     assert kwargs["params"]["geometries"] == "geojson"
     assert kwargs["params"]["steps"] == "false"

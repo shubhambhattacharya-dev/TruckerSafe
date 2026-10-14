@@ -106,7 +106,12 @@ class OSRMAdapter(RoutingProvider):
         )
 
         url = f"{self.base_url}/route/v1/driving/{coordinates}"
-        payload = self._fetch(url, alternatives)
+        # OSRM's `alternatives` query parameter counts EXTRA routes beyond
+        # the primary route, while this adapter's contract counts TOTAL
+        # routes. Request one fewer extra route so the provider can never
+        # exceed the requested total (main + N-1 extras <= N).
+        osrm_alternatives = max(0, alternatives - 1)
+        payload = self._fetch(url, osrm_alternatives)
         raw_routes = self._extract_routes(payload)
 
         routes = [self._parse_route(route) for route in raw_routes]
