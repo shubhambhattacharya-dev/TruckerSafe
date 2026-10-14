@@ -56,3 +56,8 @@ desktop.ini
 
 # Local configuration and credentials
 secrets/
+# Frontend build/test artifacts
+frontend/work-trace/
+frontend/test-results/
+frontend/playwright-report/
+frontend/tsconfig.tsbuildinfo

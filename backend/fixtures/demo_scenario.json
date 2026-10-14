@@ -1,0 +1,9 @@
+{
+  "origin": "Chicago, IL, USA",
+  "destination": "Denver, CO, USA",
+  "load_lb": 40000,
+  "checkpoint_interval_miles": 25,
+  "expected_routes": 3,
+  "disqualified_route": 2,
+  "reason": "Wind at 45-54 mph with load above 30,000 lb is No Travel."
+}

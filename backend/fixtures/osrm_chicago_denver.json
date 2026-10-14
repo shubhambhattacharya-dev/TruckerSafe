@@ -1,0 +1,7 @@
+{
+  "code": "Ok",
+  "routes": [
+    {"distance": 1609344, "duration": 61200, "geometry": {"type": "LineString", "coordinates": [[-87.6298, 41.8781], [-96.0, 41.0], [-104.9903, 39.7392]]}},
+    {"distance": 1656000, "duration": 63000, "geometry": {"type": "LineString", "coordinates": [[-87.6298, 41.8781], [-93.0, 40.2], [-104.9903, 39.7392]]}}
+  ]
+}
