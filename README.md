@@ -226,6 +226,9 @@ If the backend is cold or unreachable, the frontend serves the recorded demo fix
 
 ## Documentation & ADRs
 
+- [`Complete Interview & Revision Guide (Hinglish)`](docs/TRUCKERSAFE_COMPLETE_INTERVIEW_REVISION_GUIDE.md)
+- [`System Architecture Specification`](docs/architecture.md)
+
 All architectural design records are preserved under [`docs/decisions/`](docs/decisions/):
 - [`ADR-001: Routing Provider Adapter`](docs/decisions/ADR-001-routing-provider.md)
 - [`ADR-002: Weather Provider Adapter`](docs/decisions/ADR-002-weather-provider.md)
