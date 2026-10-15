@@ -5,7 +5,12 @@
 import demoFixture from "./demoFixture.json";
 import type { RoutePlanRequest, RoutePlanResponse } from "../types";
 
-const API_BASE: string = import.meta.env.VITE_API_BASE ?? "";
+// Vite substitutes VITE_* values at build time. Keep the public production
+// API as a fallback so an otherwise valid Vercel build never posts to its own
+// SPA URL when the dashboard variable has not been configured yet.
+const API_BASE: string = (
+  import.meta.env.VITE_API_BASE ?? "https://truckersafe-backend.onrender.com"
+).replace(/\/$/, "");
 const DEMO_MODE = import.meta.env.VITE_DEMO_MODE === "true";
 // 120s: Render free tier cold-starts can take 30-50s and a full corridor plan
 // runs ~20-25s of provider calls. Override with VITE_REQUEST_TIMEOUT_MS.
