@@ -48,6 +48,16 @@ WEATHER_FIELDS = (
     "snowfall_inches",
 )
 
+# The documented dashboard demo must remain runnable when Nominatim's public
+# service rate-limits a shared cloud IP. These are only a fallback for the two
+# default cities; every other place still uses the geocoding provider.
+DEMO_CITY_COORDINATES = {
+    "chicago, il, usa": (41.8781, -87.6298),
+    "chicago, il": (41.8781, -87.6298),
+    "denver, co, usa": (39.7392, -104.9903),
+    "denver, co": (39.7392, -104.9903),
+}
+
 
 class NoRoutesFound(Exception):
     """The routing provider returned no candidate routes."""
@@ -518,7 +528,16 @@ def plan_routes(
             key = f"geocode:v1:{address.strip().casefold()}"
             value = cache.get(key)
             if value is None:
-                value = geocoder.geocode(address)
+                try:
+                    value = geocoder.geocode(address)
+                except RoutingProviderError:
+                    value = DEMO_CITY_COORDINATES.get(address.strip().casefold())
+                    if value is None:
+                        raise
+                    logger.warning(
+                        "Using built-in coordinates for default demo city %r after geocoder failure.",
+                        address,
+                    )
                 cache.set(key, value, timeout=60 * 60 * 24)
             return value
 
