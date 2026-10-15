@@ -112,6 +112,37 @@ class OpenMeteoAdapter(WeatherProvider):
 
         return self._parse_response(payload, start, end)
 
+    def get_hourly_forecasts(
+        self,
+        locations: list[tuple[float, float]],
+        start: datetime,
+        end: datetime,
+    ) -> list[list[HourlyWeather]]:
+        """Fetch hourly forecasts for many locations in one provider call.
+
+        Open-Meteo accepts comma-separated latitude/longitude lists and
+        returns a list of response objects.  Route planning uses this to avoid
+        a request burst for every checkpoint.
+        """
+        if not locations:
+            return []
+        for latitude, longitude in locations:
+            self._validate_request(latitude, longitude, start, end)
+        params = self._build_params(locations[0][0], locations[0][1], start, end)
+        params["latitude"] = ",".join(str(latitude) for latitude, _ in locations)
+        params["longitude"] = ",".join(str(longitude) for _, longitude in locations)
+        try:
+            response = self._session.get(self.base_url, params=params, timeout=self.timeout)
+            response.raise_for_status()
+            payload = response.json()
+        except requests.Timeout as exc:
+            raise WeatherProviderError(f"{self.name} batch request timed out after {self.timeout:g} seconds.") from exc
+        except (requests.RequestException, ValueError) as exc:
+            raise WeatherProviderError(f"{self.name} batch request failed: {exc}") from exc
+        if not isinstance(payload, list) or len(payload) != len(locations):
+            raise WeatherProviderError(f"{self.name} returned an invalid batch response.")
+        return [self._parse_response(item, start, end) for item in payload if isinstance(item, dict)]
+
     def _build_params(
         self,
         latitude: float,

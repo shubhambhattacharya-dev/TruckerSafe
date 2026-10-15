@@ -139,6 +139,16 @@ DATABASES = {
     }
 }
 
+# A small process-local cache prevents repeated demo and retry requests from
+# repeatedly hitting Nominatim. Configure a shared cache in production when
+# scaling beyond one Render worker.
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+        "LOCATION": "truckersafe-route-cache",
+    }
+}
+
 
 # ---------------------------------------------------------------------------
 # Authentication

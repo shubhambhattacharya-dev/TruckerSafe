@@ -5,12 +5,12 @@ from __future__ import annotations
 
 import logging
 import os
-from concurrent.futures import ThreadPoolExecutor
 from contextlib import ExitStack
 from datetime import datetime, timedelta, timezone as datetime_timezone
 from typing import Any, Mapping
 
 from django.conf import settings
+from django.core.cache import cache
 from django.utils import timezone
 from rest_framework import status
 from rest_framework.decorators import api_view
@@ -203,6 +203,42 @@ def _serialize_weather(weather: Any | None) -> dict[str, Any] | None:
     }
 
 
+def _prefetch_route_weather(
+    weather_client: OpenMeteoAdapter,
+    checkpoints: list[tuple[float, float]],
+    etas: list[dict[str, Any]],
+    cache: dict[tuple[float, float, datetime], Any],
+) -> None:
+    """Populate the per-plan cache with one Open-Meteo batch request."""
+    # Tests replace the imported adapter with a mock. Only the concrete
+    # production adapter implements the multi-location request contract.
+    if type(weather_client).__module__ != "apps.routing.services.weather.open_meteo_adapter":
+        return
+    keys = [
+        (round(point[0], 1), round(point[1], 1), _hour_bucket(eta["arrival_time"]))
+        for point, eta in zip(checkpoints, etas)
+    ]
+    unique = list(dict.fromkeys(keys))
+    missing = [key for key in unique if key not in cache]
+    if not missing:
+        return
+    start = min(key[2] for key in missing)
+    end = max(key[2] for key in missing) + timedelta(hours=1)
+    try:
+        forecasts_by_location = weather_client.get_hourly_forecasts(
+            [(key[0], key[1]) for key in missing],
+            start,
+            end,
+        )
+        for key, forecasts in zip(missing, forecasts_by_location):
+            cache[key] = next(
+                (forecast for forecast in forecasts if forecast.timestamp == key[2]),
+                None,
+            )
+    except WeatherProviderError as exc:
+        logger.warning("Weather batch lookup failed; using individual lookups: %s", exc)
+
+
 # Guidebook section 5 data contract: the HTTP response carries exactly these
 # keys. Internal planning fields (full geometry, raw aggregates, metadata)
 # stay server-side to keep the payload small and the contract stable.
@@ -360,6 +396,8 @@ def _analyze_route(
             "ETA service returned an unexpected checkpoint count."
         )
 
+    _prefetch_route_weather(weather_client, checkpoints, etas, weather_cache)
+
     def _eval(item: tuple[Any, Any, Any]) -> dict[str, Any]:
         point, distance, eta = item
         return _evaluate_checkpoint(
@@ -372,10 +410,7 @@ def _analyze_route(
             cache=weather_cache,
         )
 
-    with ThreadPoolExecutor(max_workers=8) as executor:
-        checkpoint_results = list(
-            executor.map(_eval, zip(checkpoints, distances, etas))
-        )
+    checkpoint_results = [_eval(item) for item in zip(checkpoints, distances, etas)]
 
     risk_summary = aggregate_route_risk(
         checkpoint_results,
@@ -477,8 +512,18 @@ def plan_routes(
         if callable(getattr(weather_client, "close", None)):
             stack.callback(weather_client.close)
 
-        origin_coordinates = geocoder.geocode(origin)
-        destination_coordinates = geocoder.geocode(destination)
+        def geocode_cached(address: str) -> tuple[float, float]:
+            if settings.DEBUG:
+                return geocoder.geocode(address)
+            key = f"geocode:v1:{address.strip().casefold()}"
+            value = cache.get(key)
+            if value is None:
+                value = geocoder.geocode(address)
+                cache.set(key, value, timeout=60 * 60 * 24)
+            return value
+
+        origin_coordinates = geocode_cached(origin)
+        destination_coordinates = geocode_cached(destination)
 
         routes = router.get_routes(
             origin_coordinates,

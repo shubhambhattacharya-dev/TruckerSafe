@@ -149,6 +149,23 @@ class PlanRoutesIntegrationTests(SimpleTestCase):
     @patch("apps.routing.api.views.Geocoder")
     @patch("apps.routing.api.views.OSRMAdapter")
     @patch("apps.routing.api.views.OpenMeteoAdapter")
+    @patch.dict("os.environ", {"GEOCODER_USER_AGENT": "TruckerSafe tests contact:test@example.com"})
+    def test_weather_requests_are_not_parallel_for_test_doubles(
+        self, mock_weather_class, mock_router_class, mock_geocoder_class
+    ):
+        """Adapter batching is production-only; provider doubles retain the public contract."""
+        mock_geocoder_class.return_value.geocode.side_effect = [self.origin_coordinates, self.destination_coordinates]
+        mock_router_class.return_value.get_routes.return_value = [self.route]
+        weather = self.make_weather()
+        mock_weather_class.return_value = weather
+
+        plan_routes(origin="Chicago, IL", destination="Denver, CO", departure_time=self.departure, load_lb=20_000, checkpoint_interval_miles=25)
+
+        self.assertGreaterEqual(weather.get_hourly_forecast.call_count, 2)
+
+    @patch("apps.routing.api.views.Geocoder")
+    @patch("apps.routing.api.views.OSRMAdapter")
+    @patch("apps.routing.api.views.OpenMeteoAdapter")
     @patch.dict(
         "os.environ",
         {"GEOCODER_USER_AGENT": "TruckerSafe tests contact:test@example.com"},
