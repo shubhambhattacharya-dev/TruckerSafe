@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import logging
 import os
+from concurrent.futures import ThreadPoolExecutor
 from contextlib import ExitStack
 from datetime import datetime, timedelta, timezone as datetime_timezone
 from typing import Any, Mapping
@@ -359,8 +360,9 @@ def _analyze_route(
             "ETA service returned an unexpected checkpoint count."
         )
 
-    checkpoint_results = [
-        _evaluate_checkpoint(
+    def _eval(item: tuple[Any, Any, Any]) -> dict[str, Any]:
+        point, distance, eta = item
+        return _evaluate_checkpoint(
             weather_client,
             latitude=point[0],
             longitude=point[1],
@@ -369,8 +371,11 @@ def _analyze_route(
             load_lb=load_lb,
             cache=weather_cache,
         )
-        for point, distance, eta in zip(checkpoints, distances, etas)
-    ]
+
+    with ThreadPoolExecutor(max_workers=8) as executor:
+        checkpoint_results = list(
+            executor.map(_eval, zip(checkpoints, distances, etas))
+        )
 
     risk_summary = aggregate_route_risk(
         checkpoint_results,
