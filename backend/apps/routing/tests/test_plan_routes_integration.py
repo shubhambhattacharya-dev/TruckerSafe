@@ -6,9 +6,14 @@ from unittest.mock import MagicMock, patch
 
 from django.test import SimpleTestCase
 
-from apps.routing.api.views import plan_routes
+from apps.routing.api.views import (
+    _get_hourly_weather,
+    _prefetch_route_weather,
+    plan_routes,
+)
 from apps.routing.services.risk.engine import RiskBand
-from apps.routing.services.weather.base import HourlyWeather
+from apps.routing.services.weather.base import HourlyWeather, WeatherProviderError
+from apps.routing.services.weather.open_meteo_adapter import OpenMeteoAdapter
 
 
 class PlanRoutesIntegrationTests(SimpleTestCase):
@@ -48,6 +53,36 @@ class PlanRoutesIntegrationTests(SimpleTestCase):
 
         client.get_hourly_forecast.side_effect = get_hourly_forecast
         return client
+
+    def test_rate_limited_weather_batch_does_not_fan_out_to_checkpoints(self):
+        """One rejected batch must not cause a request per checkpoint."""
+        session = MagicMock()
+        session.headers = {}
+        weather = OpenMeteoAdapter(session=session, max_retries=0)
+        weather.get_hourly_forecasts = MagicMock(
+            side_effect=WeatherProviderError("429 Too Many Requests")
+        )
+        cache = {}
+        checkpoints = [(41.88, -87.63), (41.98, -87.63)]
+        etas = [
+            {"arrival_time": self.departure},
+            {"arrival_time": self.departure + timedelta(hours=1)},
+        ]
+
+        _prefetch_route_weather(weather, checkpoints, etas, cache)
+
+        self.assertEqual(len(cache), 2)
+        self.assertTrue(all(value is None for value in cache.values()))
+        self.assertIsNone(
+            _get_hourly_weather(
+                weather,
+                checkpoints[0][0],
+                checkpoints[0][1],
+                self.departure,
+                cache,
+            )
+        )
+        session.get.assert_not_called()
 
     @patch("apps.routing.api.views.Geocoder")
     @patch("apps.routing.api.views.OSRMAdapter")

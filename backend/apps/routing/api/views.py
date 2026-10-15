@@ -266,7 +266,18 @@ def _prefetch_route_weather(
                 None,
             )
     except WeatherProviderError as exc:
-        logger.warning("Weather batch lookup failed; using individual lookups: %s", exc)
+        # A 429 or a provider outage applies to the whole batch.  Retrying
+        # every checkpoint individually turns one rejected request into a
+        # rate-limit storm, which can exceed the public HTTP proxy deadline.
+        # Cache unavailable weather so the risk engine fails closed (NO_TRAVEL)
+        # without making any more provider requests for this plan.
+        logger.warning(
+            "Weather batch lookup failed; marking %d checkpoints unavailable: %s",
+            len(missing),
+            exc,
+        )
+        for key in missing:
+            cache[key] = None
 
 
 # Guidebook section 5 data contract: the HTTP response carries exactly these
