@@ -34,7 +34,11 @@ export default function App() {
       setResult(res);
       setSelectedId(res.plan.recommended_route_id);
       setForecastHour(6);
-      window.scrollTo({ top: 0, behavior: "smooth" });
+      if (window.innerWidth <= 900 && mapSection.current) {
+        mapSection.current.scrollIntoView({ behavior: "smooth", block: "start" });
+      } else {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
     } catch (e) {
       setError(e instanceof Error ? e.message : "Something went wrong.");
     } finally {

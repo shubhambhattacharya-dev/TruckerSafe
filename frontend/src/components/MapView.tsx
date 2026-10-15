@@ -100,8 +100,28 @@ export default function MapView(props: Props) {
       ],
     }).addTo(map.current);
     markers.current = L.layerGroup().addTo(map.current);
-    requestAnimationFrame(() => map.current?.invalidateSize());
+
+    // Ensure map tiles render even if container initialized off-screen (e.g. mobile)
+    const invalidate = () => map.current?.invalidateSize();
+    requestAnimationFrame(invalidate);
+    const t1 = setTimeout(invalidate, 150);
+    const t2 = setTimeout(invalidate, 500);
+
+    const ro = typeof ResizeObserver !== "undefined" && holder.current
+      ? new ResizeObserver(invalidate)
+      : null;
+    if (ro && holder.current) {
+      ro.observe(holder.current);
+    }
+    window.addEventListener("resize", invalidate);
+    window.addEventListener("orientationchange", invalidate);
+
     return () => {
+      clearTimeout(t1);
+      clearTimeout(t2);
+      ro?.disconnect();
+      window.removeEventListener("resize", invalidate);
+      window.removeEventListener("orientationchange", invalidate);
       map.current?.remove();
       map.current = null;
     };
@@ -144,7 +164,11 @@ export default function MapView(props: Props) {
         markers.current?.addLayer(marker);
       }
     }
-    m.fitBounds(bounds, { padding: [30, 30] });
+    m.invalidateSize();
+    if (bounds.isValid()) {
+      m.fitBounds(bounds, { padding: [30, 30] });
+    }
+    setTimeout(() => m.invalidateSize(), 150);
   }, [routes, recommendedId, selectedId, onSelectRoute]);
 
   // Heatmap overlay — recolors from the same grid when the layer changes.

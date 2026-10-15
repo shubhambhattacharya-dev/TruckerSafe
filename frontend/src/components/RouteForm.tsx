@@ -150,6 +150,17 @@ export default function RouteForm({ initial, onSubmit, busy }: Props) {
       <button className="btn-primary" type="submit" disabled={busy}>
         {busy ? "Analyzing routes…" : "➤ Find Safe Routes"}
       </button>
+
+      <a
+        href="#map-holder"
+        className="mobile-map-link"
+        onClick={(e) => {
+          e.preventDefault();
+          document.getElementById("map-holder")?.scrollIntoView({ behavior: "smooth" });
+        }}
+      >
+        🗺️ View Route Map &amp; Weather ↓
+      </a>
     </form>
   );
 }
