@@ -7,9 +7,9 @@ import type { RoutePlanRequest, RoutePlanResponse } from "../types";
 
 const API_BASE: string = import.meta.env.VITE_API_BASE ?? "";
 const DEMO_MODE = import.meta.env.VITE_DEMO_MODE === "true";
-// 60s: Render free tier cold-starts can take 30s+ and a full corridor plan
+// 120s: Render free tier cold-starts can take 30-50s and a full corridor plan
 // runs ~20-25s of provider calls. Override with VITE_REQUEST_TIMEOUT_MS.
-const REQUEST_TIMEOUT_MS = Number(import.meta.env.VITE_REQUEST_TIMEOUT_MS ?? 60_000);
+const REQUEST_TIMEOUT_MS = Number(import.meta.env.VITE_REQUEST_TIMEOUT_MS ?? 120_000);
 
 type DemoFixture = RoutePlanResponse & { request: RoutePlanRequest };
 

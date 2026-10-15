@@ -49,13 +49,33 @@ WEATHER_FIELDS = (
 )
 
 # The documented dashboard demo must remain runnable when Nominatim's public
-# service rate-limits a shared cloud IP. These are only a fallback for the two
-# default cities; every other place still uses the geocoding provider.
+# service rate-limits a shared cloud IP. These provide a reliable fallback for
+# common freight corridors; any other place still uses the geocoding provider.
 DEMO_CITY_COORDINATES = {
     "chicago, il, usa": (41.8781, -87.6298),
     "chicago, il": (41.8781, -87.6298),
     "denver, co, usa": (39.7392, -104.9903),
     "denver, co": (39.7392, -104.9903),
+    "dallas, tx, usa": (32.7767, -96.7970),
+    "dallas, tx": (32.7767, -96.7970),
+    "nashville, tn, usa": (36.1627, -86.7816),
+    "nashville, tn": (36.1627, -86.7816),
+    "atlanta, ga, usa": (33.7490, -84.3880),
+    "atlanta, ga": (33.7490, -84.3880),
+    "houston, tx, usa": (29.7604, -95.3698),
+    "houston, tx": (29.7604, -95.3698),
+    "los angeles, ca, usa": (34.0522, -118.2437),
+    "los angeles, ca": (34.0522, -118.2437),
+    "new york, ny, usa": (40.7128, -74.0060),
+    "new york, ny": (40.7128, -74.0060),
+    "memphis, tn, usa": (35.1495, -90.0490),
+    "memphis, tn": (35.1495, -90.0490),
+    "indianapolis, in, usa": (39.7684, -86.1581),
+    "indianapolis, in": (39.7684, -86.1581),
+    "seattle, wa, usa": (47.6062, -122.3321),
+    "seattle, wa": (47.6062, -122.3321),
+    "phoenix, az, usa": (33.4484, -112.0740),
+    "phoenix, az": (33.4484, -112.0740),
 }
 
 
