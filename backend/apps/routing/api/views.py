@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import logging
 import os
+import re
 from contextlib import ExitStack
 from datetime import datetime, timedelta, timezone as datetime_timezone
 from typing import Any, Mapping
@@ -556,7 +557,8 @@ def plan_routes(
         def geocode_cached(address: str) -> tuple[float, float]:
             if settings.DEBUG:
                 return geocoder.geocode(address)
-            key = f"geocode:v1:{address.strip().casefold()}"
+            safe_address = re.sub(r"[^a-zA-Z0-9_-]", "_", address.strip().casefold())
+            key = f"geocode:v1:{safe_address}"
             value = cache.get(key)
             if value is None:
                 try:

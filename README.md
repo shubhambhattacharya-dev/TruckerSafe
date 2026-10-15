@@ -1,6 +1,11 @@
 # TruckerSafe — Weather-Aware Truck Routing
 
 [![CI](https://github.com/shubhambhattacharya-dev/TruckerSafe/actions/workflows/ci.yml/badge.svg)](https://github.com/shubhambhattacharya-dev/TruckerSafe/actions)
+[![Live Frontend](https://img.shields.io/badge/Live_Frontend-Vercel-blue?style=flat&logo=vercel)](https://frontend-mocha-eight-15.vercel.app)
+[![Live Backend](https://img.shields.io/badge/Live_Backend-Render-green?style=flat&logo=render)](https://truckersafe-backend.onrender.com)
+
+- **Live Application**: [https://frontend-mocha-eight-15.vercel.app](https://frontend-mocha-eight-15.vercel.app)
+- **Live Backend API**: [https://truckersafe-backend.onrender.com](https://truckersafe-backend.onrender.com)
 
 Weather-aware truck-route planning system built with **React (TypeScript + Leaflet)** and **Django REST Framework (Python)**. TruckerSafe compares real road-route alternatives from OSRM, samples Open-Meteo forecast weather at estimated arrival times at 10/25/50-mile intervals, applies deterministic load-aware safety rules, and presents a recommended route with interactive maps, IDW weather heatmap layers, and a checkpoint audit table.
 
