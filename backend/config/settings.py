@@ -244,12 +244,21 @@ REST_FRAMEWORK = {
 
 CORS_ALLOWED_ORIGINS = env_list(
     "CORS_ALLOWED_ORIGINS",
-    "http://localhost:5173,http://127.0.0.1:5173",
+    "http://localhost:5173,http://127.0.0.1:5173,https://truckersafe.vercel.app",
 )
+
+CORS_ALLOWED_ORIGIN_REGEXES = [
+    r"^https:\/\/.*\.vercel\.app$",
+    r"^http:\/\/localhost:\d+$",
+    r"^http:\/\/127\.0\.0\.1:\d+$",
+]
 
 CORS_ALLOW_CREDENTIALS = True
 
-CSRF_TRUSTED_ORIGINS = env_list("CSRF_TRUSTED_ORIGINS", "")
+CSRF_TRUSTED_ORIGINS = env_list(
+    "CSRF_TRUSTED_ORIGINS",
+    "https://*.vercel.app,https://truckersafe.vercel.app",
+)
 
 GEOCODER_USER_AGENT = os.getenv(
     "GEOCODER_USER_AGENT",
